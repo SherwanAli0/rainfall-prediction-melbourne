@@ -1,8 +1,7 @@
- Rainfall Prediction for Melbourne Area
+  Project Overview:Rainfall Prediction for Melbourne Area
 
 A machine learning project that predicts whether it will rain tomorrow based on historical weather data from Australia. This project was completed as part of the **IBM AI Engineering Certificate Program** on Coursera.
 
- Project Overview:
 
 This project builds a classification model to predict rainfall using the Australian weather dataset. The model focuses on the Melbourne metropolitan area and uses various weather features like temperature, humidity, pressure, and wind patterns to make predictions.
 
