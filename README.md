@@ -131,7 +131,7 @@ This project was completed as part of the **IBM AI Engineering Professional Cert
 
 Contact
 
-Feel free to reach out if you have questions about this project or want to discuss machine learning opportunities!
+Feel free to reach out if you have questions 
 
 ---
 
