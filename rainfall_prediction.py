@@ -1,31 +1,42 @@
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
-import seaborn as sns
 
 
+# Figures are saved next to this script, in images/.
+IMAGES_DIR = Path(__file__).resolve().parent / 'images'
+IMAGES_DIR.mkdir(exist_ok=True)
+
+# The CSV is downloaded from this URL every time the script runs (internet access required).
 url="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/_0eYOqji3unP1tDNKWZMjg/weatherAUS-2.csv"
 df = pd.read_csv(url)
-df.head()
-df.count
 
 df = df.dropna()
 df.info()
 
-df.columns
-
+# Label renaming (kept from the course exercise). Each row holds the weather
+# observed on its Date. In the source CSV:
+#   original 'RainToday'    = rain flag for the row's own date
+#   original 'RainTomorrow' = rain flag for the day after the row's date
+# After the rename below:
+#   'RainYesterday' (feature) = original 'RainToday'   (rain flag of the row's date)
+#   'RainToday'     (target)  = original 'RainTomorrow' (rain on the day AFTER the row's date)
+# So the model predicts next-day rain from same-date observations; the target
+# column is called 'RainToday' only because of this renaming.
 df = df.rename(columns={'RainToday': 'RainYesterday',
                         'RainTomorrow': 'RainToday'
                         })
 
 df = df[df.Location.isin(['Melbourne','MelbourneAirport','Watsonia',])]
-df. info()
+df.info()
 
 def date_to_season(date):
     month = date.month
@@ -44,13 +55,14 @@ df['Date'] = pd.to_datetime(df['Date'])
 df['Season'] = df['Date'].apply(date_to_season)
 
 df = df.drop(columns=['Date'])
-df
 
-X = df.drop(columns='RainToday', axis=1)
+# Target = renamed column 'RainToday' (original 'RainTomorrow'); it is excluded from the features.
+X = df.drop(columns='RainToday')
 y = df['RainToday']
 
-y.value_counts()
+print(y.value_counts())
 
+# Random stratified 80/20 split of rows (not chronological).
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
 numeric_features = X_train.select_dtypes(include=['number']).columns.tolist()
@@ -80,8 +92,7 @@ param_grid = {
     'classifier__min_samples_split': [2, 5]
 }
 
-cv = StratifiedKFold(n_splits=5, shuffle=True)
-
+# cv=5 with a classifier means scikit-learn uses StratifiedKFold(n_splits=5) without shuffling.
 grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', verbose=2)
 grid_search.fit(X_train, y_train)
 
@@ -101,6 +112,7 @@ conf_matrix = confusion_matrix(y_test, y_pred)
 disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix)
 disp.plot(cmap='Blues')
 plt.title('Confusion Matrix')
+plt.savefig(IMAGES_DIR / 'confusion_matrix.png', bbox_inches='tight')
 plt.show()
 
 feature_importances = grid_search.best_estimator_['classifier'].feature_importances_
@@ -110,8 +122,6 @@ feature_names = numeric_features + list(grid_search.best_estimator_['preprocesso
                                         .named_transformers_['cat']
                                         .named_steps['onehot']
                                         .get_feature_names_out(categorical_features))
-
-feature_importances = grid_search.best_estimator_['classifier'].feature_importances_
 
 importance_df = pd.DataFrame({'Feature': feature_names,
                               'Importance': feature_importances
@@ -124,6 +134,7 @@ top_features = importance_df.head(N)
 plt.figure(figsize=(10, 6))
 plt.barh(top_features['Feature'], top_features['Importance'], color='skyblue')
 plt.gca().invert_yaxis()
-plt.title(f'Top {N} Most Important Features in predicting whether it will rain today')
+plt.title(f'Top {N} Features for Predicting Next-Day Rain (original RainTomorrow)')
 plt.xlabel('Importance Score')
+plt.savefig(IMAGES_DIR / 'feature_importance.png', bbox_inches='tight')
 plt.show()
