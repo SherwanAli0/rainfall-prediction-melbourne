@@ -125,14 +125,14 @@ The tests run the script on a tiny synthetic dataset (nothing is downloaded and 
 
 ```
 rainfall-prediction-melbourne/
-├── README.md                    # Project documentation
-├── LICENSE                      # MIT license
-├── rainfall_prediction.py       # Main analysis script
-├── requirements.txt             # Python dependencies
-├── tests/                       # Offline tests using a synthetic dataset
-└── images/                      # Saved figures
-    ├── confusion_matrix.png     # Confusion matrix on the test set
-    └── feature_importance.png   # Feature importance plot
++-- README.md                    # Project documentation
++-- LICENSE                      # MIT license
++-- rainfall_prediction.py       # Main analysis script
++-- requirements.txt             # Python dependencies
++-- tests/                       # Offline tests using a synthetic dataset
++-- images/                      # Saved figures
+    +-- confusion_matrix.png     # Confusion matrix on the test set
+    +-- feature_importance.png   # Feature importance plot
 ```
 
 Limitations:
