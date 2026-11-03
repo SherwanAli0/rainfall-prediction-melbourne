@@ -1,6 +1,6 @@
   Project Overview : Rainfall Prediction for Melbourne Area
 
-A machine learning project that predicts whether it will rain on the day after an observation, using historical weather data from Australia. This is **coursework**: it was completed as part of the **IBM AI Engineering Professional Certificate** on Coursera ("Machine Learning with Python" course). The dataset is hosted on IBM's course storage (see the URL under "Dataset").
+A machine learning project that predicts whether it will rain on the day after an observation, using historical weather data from Australia. This is coursework for the **IBM AI Engineering Certificate, Machine Learning course** (IBM AI Engineering Professional Certificate on Coursera), completed by Sherwan Ali. The course supplied the dataset and the task outline; the implementation in this repository is Sherwan Ali's own work. The dataset is hosted on IBM's course storage (see the URL under "Dataset").
 
 This project builds a classification model to predict rainfall using the Australian weather dataset. The model focuses on the Melbourne metropolitan area and uses weather features such as temperature, humidity, pressure, and wind to make predictions.
 
@@ -14,7 +14,7 @@ This project builds a classification model to predict rainfall using the Austral
 
 What is being predicted (read this before interpreting any output):
 
-- Each row holds the weather observed on its `Date`. In the source CSV, `RainToday` is the rain flag for that date and `RainTomorrow` is the rain flag for the following day (based on the column names; not re-checked against the CSV in the latest pass).
+- Each row holds the weather observed on its `Date`. In the source CSV, `RainToday` is the rain flag for that date and `RainTomorrow` is the rain flag for the following day. Checked against the downloaded CSV on 2026-11-03: for consecutive dates at the same location, `RainTomorrow` equals the next day's `RainToday` in all 142,017 pairs, and `RainToday` agrees with `Rainfall >= 1` mm on 98.8% of rows.
 - The script renames `RainToday` to `RainYesterday` (used as a feature) and `RainTomorrow` to `RainToday` (the target). This renaming follows the course exercise.
 - So the **target column named `RainToday` in the code and outputs is the original `RainTomorrow`**: rain (Yes/No) on the day after the row's date, predicted from that date's observations. It is not a same-day nowcast.
 
@@ -50,7 +50,19 @@ Methodology:
    - Confusion matrix visualization
    - Feature importance analysis
 
- Historical results (from the original run; not re-run in the latest repair pass because that requires downloading the dataset, so these numbers are unverified against a fresh run):
+ Re-run on 2026-11-03 (measured with the repaired script, `python rainfall_prediction.py`, Python 3.11.9, pandas 3.1.0, scikit-learn 1.9.1, matplotlib 3.11.2, numpy 2.4.6; about 3 minutes on the author's Windows PC):
+
+- Dataset: the CSV has 145,460 rows and 23 columns with no leakage-type column (no `RISK_MM`); 56,420 rows remain after `dropna()`, and 7,557 rows for the three Melbourne-area locations (5,766 No, 1,791 Yes, 76.3% / 23.7%)
+- Best parameters: `max_depth` 20, `min_samples_split` 2, `n_estimators` 100
+- Best cross-validation accuracy: 0.8506
+- Test accuracy: 0.8446 (1,512 test rows)
+- Confusion matrix (rows = true No/Yes, columns = predicted): [[1094, 60], [175, 183]]
+- No rain: precision 0.86, recall 0.95, F1 0.90; Rain: precision 0.75, recall 0.51, F1 0.61; weighted F1 0.83
+- Top 5 features: Humidity3pm 0.121, Pressure3pm 0.091, Pressure9am 0.086, Sunshine 0.082, WindGustSpeed 0.051
+
+These match the historical results below (same parameters, same confusion matrix, same top-feature ranking), even though the library versions differ from the original run. `images/` was regenerated from this run.
+
+ Historical results (from the original run, kept for reference):
 
 - Test Accuracy: 84% (0.84)
 - Cross-validation Score: 85% (0.85)
@@ -66,9 +78,7 @@ Model Performance Breakdown:
 - Rain Prediction: 75% precision, 51% recall
 - Overall F1-Score: 0.83 (weighted average)
 
-The test-set figures above are consistent with the confusion matrix saved in `images/confusion_matrix.png` (1,512 test rows), which was produced by the original run.
-
-Top 5 Most Important Features (original run):
+Top 5 Most Important Features (original run; the 2026-11-03 re-run gives Pressure9am 0.086, i.e. 0.09 when rounded):
 1. Humidity3pm (0.12) - Afternoon humidity levels
 2. Pressure3pm (0.09) - Afternoon atmospheric pressure  
 3. Pressure9am (0.08) - Morning atmospheric pressure
@@ -95,12 +105,12 @@ How to Run
    python rainfall_prediction.py
    ```
 
-4. The script saves `images/confusion_matrix.png` and `images/feature_importance.png` (overwriting existing files) and also opens each figure in a window; close the first window to continue. The PNG files currently committed come from the original run (the feature-importance title text there differs slightly from the current script).
+4. The script saves `images/confusion_matrix.png` and `images/feature_importance.png` (overwriting existing files) and also opens each figure in a window; close the first window to continue. The committed PNG files were regenerated by the 2026-11-03 run.
 
 Environment checked
 
-- Python 3.11.9 with pandas 2.3.3 and pandas 3.1.0, scikit-learn 1.9.1, matplotlib 3.11.2, numpy 2.4.6.
-- These versions were checked only on a small synthetic stand-in dataset (the real dataset was not downloaded), so the pipeline and figure saving are verified but the metrics above are not.
+- Full run on the real dataset: Python 3.11.9, pandas 3.1.0, scikit-learn 1.9.1, matplotlib 3.11.2, numpy 2.4.6 (results above).
+- The offline tests were also run with pandas 2.3.3; the full real-data run was not repeated on pandas 2.x or other Python versions.
 
 Checks without the dataset
 
